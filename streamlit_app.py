@@ -130,42 +130,62 @@ def draw_detections_on_image(
 ) -> Image.Image:
     """Gambar bounding box & label di atas PIL Image."""
     draw = ImageDraw.Draw(img)
-    w, h = img.size
+    img_w, img_h = img.size
 
-    # Coba muat font; fallback ke default jika tidak tersedia
+    # Coba muat font; fallback ke default bawaan PIL
     try:
-        font = ImageFont.truetype("arial.ttf", 14)
-        font_small = ImageFont.truetype("arial.ttf", 12)
+        font_label = ImageFont.truetype("arial.ttf", 13)
     except Exception:
-        font = ImageFont.load_default()
-        font_small = font
+        font_label = ImageFont.load_default()
 
     COLORS = ["#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"]
+    LABEL_H = 20  # tinggi kotak label piksel
 
     for idx, det in enumerate(detections):
-        cls   = det["class"]
-        conf  = det["confidence"]
-        bbox  = det["bbox"]  # [ymin_n, xmin_n, ymax_n, xmax_n] ternormalisasi
+        cls  = det["class"]
+        conf = det["confidence"]
+        bbox = det["bbox"]  # [ymin_norm, xmin_norm, ymax_norm, xmax_norm]
 
-        # Denormalisasi ke piksel
-        y1 = int(bbox[0] * h);  x1 = int(bbox[1] * w)
-        y2 = int(bbox[2] * h);  x2 = int(bbox[3] * w)
+        # Denormalisasi ke piksel integer
+        bx1 = int(bbox[1] * img_w)
+        by1 = int(bbox[0] * img_h)
+        bx2 = int(bbox[3] * img_w)
+        by2 = int(bbox[2] * img_h)
+
+        # Clamp agar tidak keluar batas gambar
+        bx1 = max(0, min(bx1, img_w - 1))
+        by1 = max(0, min(by1, img_h - 1))
+        bx2 = max(bx1 + 1, min(bx2, img_w))
+        by2 = max(by1 + 1, min(by2, img_h))
 
         color = COLORS[idx % len(COLORS)]
-        draw.rectangle([x1, y1, x2, y2], outline=color, width=3)
 
+        # Gambar kotak deteksi
+        draw.rectangle([bx1, by1, bx2, by2], outline=color, width=3)
+
+        # Teks label
         prod_info  = products.get(cls)
         prod_label = prod_info["name"] if prod_info else cls.replace("_", " ").title()
         label_txt  = f"{prod_label} {int(conf * 100)}%"
 
-        # Kotak latar label
-        label_w = len(label_txt) * 7 + 12
-        label_h = 20
-        lx1, ly1 = x1, max(0, y1 - label_h)
-        draw.rectangle([lx1, ly1, lx1 + label_w, lx1 + label_h - (label_h - (y1 - ly1))], fill=color)  # noqa
-        # Gambar ulang supaya rapi
-        draw.rectangle([x1, max(0, y1 - label_h), x1 + label_w, y1], fill=color)
-        draw.text((x1 + 4, max(0, y1 - 16)), label_txt, fill="#FFFFFF", font=font_small)
+        # Estimasi lebar label (7px per karakter)
+        label_w = len(label_txt) * 7 + 10
+
+        # Posisi kotak latar teks: di atas bounding box jika muat, di bawah jika tidak
+        if by1 >= LABEL_H:
+            lbl_y1 = by1 - LABEL_H
+            lbl_y2 = by1
+        else:
+            lbl_y1 = by2
+            lbl_y2 = by2 + LABEL_H
+
+        lbl_x2 = min(bx1 + label_w, img_w)
+
+        # Gambar kotak latar label (koordinat sudah pasti valid)
+        draw.rectangle([bx1, lbl_y1, lbl_x2, lbl_y2], fill=color)
+
+        # Gambar teks
+        draw.text((bx1 + 4, lbl_y1 + 3), label_txt, fill="#FFFFFF", font=font_label)
 
     return img
 
