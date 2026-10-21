@@ -180,12 +180,20 @@ def load_yolo_model(model_path: str = "best.pt"):
             mdl = YOLO(model_path)
             return mdl, True, f"✅ Model kustom **{model_path}** berhasil dimuat ({len(mdl.names)} kelas)."
         else:
-            mdl = YOLO("yolov8n.pt")
-            return mdl, False, (
-                f"⚠️ `{model_path}` belum ditemukan. "
-                "Menggunakan fallback **yolov8n.pt**. "
-                "Letakkan `best.pt` di folder yang sama dengan file ini."
-            )
+            # Cari file .pt lain di folder yang sama
+            pt_files = [f for f in os.listdir(".") if f.endswith(".pt")]
+            if pt_files:
+                mdl = YOLO(pt_files[0])
+                return mdl, True, (
+                    f"✅ Memuat **{pt_files[0]}** (ditemukan otomatis, "
+                    f"'{model_path}' tidak ada). {len(mdl.names)} kelas."
+                )
+            else:
+                mdl = YOLO("yolov8n.pt")
+                return mdl, False, (
+                    f"⚠️ `{model_path}` tidak ditemukan & tidak ada file .pt lain. "
+                    "Menggunakan fallback **yolov8n.pt**."
+                )
     except ImportError:
         return None, False, "❌ `ultralytics` belum terinstall. Jalankan: `pip install ultralytics`"
     except Exception as exc:
@@ -222,7 +230,13 @@ with st.sidebar:
 
     # Pengaturan Model
     with st.expander("⚙️ Pengaturan Model YOLO", expanded=True):
-        model_file    = st.text_input("File Model (.pt)", value="best.pt")
+        # Deteksi otomatis nama file model yang tersedia di folder
+        _default_model = (
+            "my_model.pt" if os.path.exists("my_model.pt")
+            else "best.pt" if os.path.exists("best.pt")
+            else "yolov8n.pt"
+        )
+        model_file    = st.text_input("File Model (.pt)", value=_default_model)
         conf_thresh   = st.slider("Confidence", 0.25, 0.95, 0.50, 0.05,
                                   help="Objek dengan confidence di bawah ini diabaikan.")
         auto_add_cart = st.checkbox("Auto masuk keranjang saat scan", value=True)
