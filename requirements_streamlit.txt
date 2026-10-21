@@ -1,0 +1,23 @@
+# ============================================================
+# VisionPOS – Python Dependencies
+# Install: pip install -r requirements_streamlit.txt
+# ============================================================
+
+# ── Streamlit UI ─────────────────────────────────────────────
+streamlit>=1.35.0
+
+# ── YOLO Inference ───────────────────────────────────────────
+ultralytics>=8.2.0
+
+# ── Image Processing ─────────────────────────────────────────
+opencv-python-headless>=4.9.0.80
+pillow>=10.3.0
+
+# ── Data & Utilities ─────────────────────────────────────────
+pandas>=2.2.0
+numpy>=1.26.0
+
+# ── FastAPI REST Backend (yolo_api.py) ───────────────────────
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
