@@ -530,6 +530,18 @@ if st.session_state.active_tab == "kasir":
                     st.session_state.transactions.insert(0, trx)
 
                     # Tampilkan struk di modal (expander)
+                    # Siapkan baris tunai di luar f-string untuk menghindari f-string bersarang
+                    cash_line = (
+                        f"<div>Tunai: {fmt_rp(cash_given)} | Kembali: {fmt_rp(change)}</div>"
+                        if pay_method == "Tunai" else ""
+                    )
+                    # Siapkan baris item struk
+                    items_html = "".join(
+                        f"<div style='display:flex;justify-content:space-between;'>"
+                        f"<span>{v['name']} x{v['qty']}</span>"
+                        f"<span>{fmt_rp(v['price'] * v['qty'])}</span></div>"
+                        for v in trx["items"].values()
+                    )
                     with st.expander("🧾 Struk Transaksi – Klik untuk Buka", expanded=True):
                         st.markdown(
                             f"""
@@ -550,12 +562,7 @@ if st.session_state.active_tab == "kasir":
                               <div><b>No. Nota:</b> {trx_no}</div>
                               <div><b>Metode  :</b> {pay_method}</div>
                               <div style="border-top:1px dashed #334155; margin:8px 0;"></div>
-                              {"".join(
-                                  f"<div style='display:flex;justify-content:space-between;'>"
-                                  f"<span>{v['name']} x{v['qty']}</span>"
-                                  f"<span>{fmt_rp(v['price'] * v['qty'])}</span></div>"
-                                  for v in trx['items'].values()
-                              )}
+                              {items_html}
                               <div style="border-top:1px dashed #334155; margin:8px 0;"></div>
                               <div style="display:flex;justify-content:space-between;">
                                   <span>Subtotal</span><span>{fmt_rp(subtotal)}</span>
@@ -569,7 +576,7 @@ if st.session_state.active_tab == "kasir":
                                           border-top:1px dashed #334155;">
                                   <span>TOTAL</span><span>{fmt_rp(total_bill)}</span>
                               </div>
-                              {"f'<div>Tunai: {fmt_rp(cash_given)} | Kembali: {fmt_rp(change)}</div>' if pay_method == 'Tunai' else ''}
+                              {cash_line}
                               <div style="text-align:center; margin-top:14px; color:#64748b; font-size:10px;">
                                   Terima kasih telah berbelanja! 🙏
                               </div>
