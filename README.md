@@ -18,7 +18,7 @@ Tersedia dalam **dua mode operasi**:
 - 🛒 Keranjang kasir: tambah/hapus/kuantitas
 - 💳 Pembayaran: QRIS, Tunai (kembalian otomatis), Debit, E-Wallet
 - 🧾 Struk transaksi (tampil di layar + download `.txt`)
-- 📦 Katalog produk: CRUD, 14 produk default
+- 📦 Katalog produk: CRUD, 7 produk default
 - 📑 Riwayat transaksi dengan export CSV
 - ⚙️ Sinkronisasi kelas model `.pt` ke katalog kasir otomatis
 
